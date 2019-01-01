@@ -1,0 +1,94 @@
+buildscript {
+    ext {
+		springBootVersion = '2.1.1.RELEASE'
+	}
+	repositories {
+        jcenter {
+			url "http://jcenter.bintray.com/"
+		}
+        
+    }
+    dependencies {
+        //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+//apply plugin: 'artifactory-publish'
+
+group = 'com.artifactory.sample'
+version = '2.1.1-' + getDate()
+sourceCompatibility = 1.8
+
+allprojects {
+    apply plugin: "com.jfrog.artifactory"
+}
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-actuator')
+	implementation('org.springframework.boot:spring-boot-starter-jersey')
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	runtimeOnly('org.springframework.boot:spring-boot-devtools')
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+artifactory {
+    contextUrl = "http://localhost:8040/artifactory/"
+    publish {
+        repository {
+            repoKey = 'gradle-dev-local'
+            username = "admin"
+            password = "Mpls@4321"
+            maven = true
+            
+        }
+        defaults {
+           publications ('mavenJava')
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'gradle-dev'
+            username = "admin"
+            password = "Mpls@4321"
+            maven = true
+            
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmmss')
+    return formattedDate
+}
+
+/*
+publishing {
+    publications{
+        maven(MavenPublication) {
+            groupId group
+            version = version
+            artifactId = projectDir.name
+            artifact("${buildDir}/libs/SAMPLE-ARTIFACTORY" + ".jar"){
+
+            }
+        }
+    }
+}
+ */
